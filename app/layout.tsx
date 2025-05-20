@@ -75,9 +75,9 @@ export default async function RootLayout({
               <Navbar />
               <main className="flex-grow min-h-[calc(100vh-200px)]">
                 {/* Wrap children with ProtectedRoute */}
-                <ProtectedRoute>
+               
                   {children}
-                </ProtectedRoute>
+               
               </main>
               <Toaster richColors />
               <Footer />

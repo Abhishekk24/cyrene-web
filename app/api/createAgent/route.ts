@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     upstreamFormData.append("cover_img", formData.get('cover_img'));
     upstreamFormData.append("voice_model", formData.get('voice_model'));
     upstreamFormData.append("wallet_address", formData.get('wallet_address'));
-    upstreamFormData.append("organization", "cyrene");
+    upstreamFormData.append("organization", "base");
 
     const response = await axios.post(`${API_BASE_URL}/agents/us01.erebrus.io/`, upstreamFormData, {
       headers: {
