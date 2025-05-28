@@ -6,7 +6,11 @@ import { BaseWalletAdapter, SolanaAdapter } from '@reown/appkit-adapter-solana';
 import { mainnet, arbitrum, base, solana, solanaTestnet, solanaDevnet } from '@reown/appkit/networks';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { defineChain } from '@reown/appkit/networks';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import axios from 'axios';
+import { BrowserProvider } from 'ethers';
+import { toast } from 'sonner';
 
 declare global {
   interface Window {
@@ -15,6 +19,13 @@ declare global {
         signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
         isPhantom?: boolean;
       };
+    };
+    solflare?: {
+      isSolflare?: boolean;
+      signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
+    };
+    backpack?: {
+      signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
     };
   }
 }
@@ -128,6 +139,274 @@ const getChainType = (chainId: string | number): 'solana' | 'evm' => {
          chainIdNum === Number(solanaDevnet.id) || 
          chainIdNum === Number(solanaTestnet.id) ? 'solana' : 'evm';
 };
+
+// Helper to get cookie key with chain suffix
+const getChainCookieKey = (key: string, chainType: string) => {
+  return `${key}_${chainType}`;
+};
+
+// Cookie management utilities
+const setAuthCookies = (chainType: 'solana' | 'evm', token: string, walletAddress: string, userId: string) => {
+  const options = { 
+    expires: 7,
+    path: '/',
+    sameSite: 'Strict' as const,
+    secure: process.env.NODE_ENV === 'production'
+  };
+  
+  Cookies.set(getChainCookieKey("erebrus_token", chainType), token, options);
+  Cookies.set(getChainCookieKey("erebrus_wallet", chainType), walletAddress.toLowerCase(), options);
+  Cookies.set(getChainCookieKey("erebrus_userid", chainType), userId, options);
+};
+
+const clearAuthCookies = (chainType: 'solana' | 'evm') => {
+  const options = { path: '/' };
+  Cookies.remove(getChainCookieKey("erebrus_token", chainType), options);
+  Cookies.remove(getChainCookieKey("erebrus_wallet", chainType), options);
+  Cookies.remove(getChainCookieKey("erebrus_userid", chainType), options);
+};
+
+const getAuthFromCookies = (chainType: 'solana' | 'evm') => {
+  return {
+    token: Cookies.get(getChainCookieKey("erebrus_token", chainType)),
+    wallet: Cookies.get(getChainCookieKey("erebrus_wallet", chainType)),
+    userId: Cookies.get(getChainCookieKey("erebrus_userid", chainType))
+  };
+};
+
+// EVM Authentication
+const authenticateEVM = async (walletAddress: string, walletProvider: any) => {
+  try {
+    const GATEWAY_URL = "https://gateway.netsepio.com/";
+    const chainName = "evm";
+
+    const { data } = await axios.get(
+      `${GATEWAY_URL}api/v1.0/flowid?walletAddress=${walletAddress}&chain=evm`
+    );
+
+    const message = data.payload.eula;
+    const flowId = data.payload.flowId;
+
+    console.log("EVM Message:", message);
+    console.log("EVM Flow ID:", flowId);
+
+    const combinedMessage = `${message}${flowId}`;
+    console.log("Combined Message:", combinedMessage);
+
+    const provider = new BrowserProvider(walletProvider);
+    if (!walletAddress) {
+      throw new Error("Wallet address is undefined");
+    }
+    const signer = await provider.getSigner();
+    const signerAddress = await signer.getAddress();
+
+    if (signerAddress.toLowerCase() !== walletAddress?.toLowerCase()) {
+      throw new Error(
+        `Mismatch: Signer address (${signerAddress}) !== Connected address (${walletAddress})`
+      );
+    }
+
+    let signature = await signer.signMessage(combinedMessage);
+
+    if (signature.startsWith("0x")) {
+      signature = signature.slice(2);
+    }
+
+    const authResponse = await axios.post(
+      `${GATEWAY_URL}api/v1.0/authenticate`,
+      {
+        chainName,
+        flowId,
+        signature,
+        walletAddress
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { token, userId } = authResponse.data.payload;
+    setAuthCookies('evm', token, walletAddress, userId);
+    return true;
+  } catch (error) {
+    console.error("EVM Authentication error:", error);
+    clearAuthCookies('evm');
+    return false;
+  }
+};
+
+// Solana Authentication - Updated to support multiple wallets
+const authenticateSolana = async (walletAddress: string) => {
+  try {
+    const GATEWAY_URL = "https://gateway.netsepio.com/";
+    const chainName = "sol";
+
+    const { data } = await axios.get(`${GATEWAY_URL}api/v1.0/flowid`, {
+      params: {
+        walletAddress,
+        chain: chainName,
+      },
+    });
+
+    const message = data.payload.eula;
+    const flowId = data.payload.flowId;
+
+    // Check for any supported Solana wallet
+    const wallet = 
+      window.phantom?.solana || 
+      window.solflare || 
+      window.backpack || 
+      (window.solana?.isConnected ? window.solana : null);
+
+    if (!wallet) {
+      throw new Error("No Solana wallet detected");
+    }
+
+    const encodedMessage = new TextEncoder().encode(message);
+    const { signature: sigBytes } = await wallet.signMessage(encodedMessage);
+
+    const signatureHex = Array.from(new Uint8Array(sigBytes))
+    .map((b: number) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+    const authResponse = await axios.post(
+      `${GATEWAY_URL}api/v1.0/authenticate?walletAddress=${walletAddress}&chain=sol`,
+      {
+        flowId,
+        signature: signatureHex,
+        pubKey: walletAddress,
+        walletAddress,
+        message,
+        chainName,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { token, userId } = authResponse.data.payload;
+    setAuthCookies('solana', token, walletAddress, userId);
+    return true;
+  } catch (error) {
+    console.error("Solana Authentication error:", error);
+    clearAuthCookies('solana');
+    return false;
+  }
+};
+
+// Wallet auth hook
+export function useWalletAuth() {
+  const { isConnected, address } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider<Provider>("eip155");
+  const { chainId, caipNetworkId } = useAppKitNetworkCore();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState(false);
+
+  // Get current auth status
+  const getCurrentAuthStatus = () => {
+    if (!isConnected || !address) return false;
+    
+    const chainType = caipNetworkId?.startsWith('solana:') ? 'solana' : 'evm';
+    const { token, wallet } = getAuthFromCookies(chainType);
+    return !!(token && wallet?.toLowerCase() === address.toLowerCase());
+  };
+
+  // Authentication function
+  const authenticate = async () => {
+    if (!isConnected || !address) {
+      setAuthError('Wallet not connected');
+      return false;
+    }
+
+    setIsAuthenticating(true);
+    setAuthError(null);
+    setAuthSuccess(false);
+
+    try {
+      // Determine chain type
+      let chainType: 'solana' | 'evm' = 'evm';
+      if (caipNetworkId) {
+        chainType = caipNetworkId.startsWith('solana:') ? 'solana' : 'evm';
+      } else if (chainId) {
+        chainType = getChainType(chainId);
+      }
+
+      // Check existing auth
+      const { token, wallet } = getAuthFromCookies(chainType);
+      
+      if (token && wallet?.toLowerCase() === address.toLowerCase()) {
+        setAuthSuccess(true);
+        return true;
+      }
+
+      // Clear existing auth if wallet mismatch
+      if (wallet && wallet.toLowerCase() !== address.toLowerCase()) {
+        clearAuthCookies(chainType);
+      }
+
+      let authResult = false;
+      
+      if (chainType === 'solana') {
+        const solanaWallet = 
+          window.phantom?.solana || 
+          window.solflare || 
+          window.backpack || 
+          (window.solana?.isConnected ? window.solana : null);
+        
+        if (!solanaWallet) {
+          throw new Error('No Solana wallet detected');
+        }
+        authResult = await authenticateSolana(address);
+      } else {
+        if (!walletProvider) {
+          throw new Error('EVM wallet provider not available');
+        }
+        authResult = await authenticateEVM(address, walletProvider);
+      }
+
+      if (authResult) {
+        setAuthSuccess(true);
+        toast.success('Authentication successful');
+        return true;
+      } else {
+        throw new Error('Authentication failed');
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      setAuthError(errorMessage);
+      toast.error(errorMessage);
+      return false;
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Cleanup on disconnection
+  useEffect(() => {
+    if (!isConnected) {
+      ['solana', 'evm'].forEach(chainType => {
+        clearAuthCookies(chainType as 'solana' | 'evm');
+      });
+      setAuthSuccess(false);
+    }
+  }, [isConnected]);
+
+  return {
+    isConnected,
+    address,
+    isAuthenticated: getCurrentAuthStatus(),
+    isAuthenticating,
+    authError,
+    authSuccess,
+    authenticate,
+  };
+}
 
 // AppKit provider component
 export function AppKit({ children }: { children: React.ReactNode }) {

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { NextResponse } from 'next/server';
 
 const MESSAGE_API_URL = process.env.MESSAGE_API_URL; 
-const AGENT_ID = process.env.CYRENE_AI_ID;
+const AGENT_ID = process.env.LUMINA_AI_ID;
 
 export async function POST(req: Request) {
   try {

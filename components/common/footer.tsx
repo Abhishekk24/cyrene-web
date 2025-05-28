@@ -21,7 +21,7 @@ const Footer = () => {
           <div className=' text-center sm:text-left py-6'>
            
             <p className='text-gray-100 text-[14px] leading-relaxed py-4'>
-              Powering the future of AI interaction through multi-agent collaboration with self-replicating, decentralized agents.
+            Your concierge to conscious co-living and tokenized wellness. Navigate sanctuaries, DAO proposals, and your regenerative future with LuminaAI.
             </p>
             <div className='flex justify-center sm:justify-start space-x-4'>
               <Link href='https://x.com/CyreneAI' target='_blank' className='p-3 rounded-xl hover:bg-white/10 transition-colors'>
@@ -41,7 +41,7 @@ const Footer = () => {
             <h3 className='text-white text-lg font-bold text-center sm:text-left lg:mb-4 md:mb-4'>Quick Links</h3>
             <ul className='space-y-2 text-center sm:text-left'>
               {/* <li><Link href='/about' className='text-gray-100 hover:text-white transition-colors'>About</Link></li> */}
-              <li><Link href='https://docs.netsepio.com/latest/cyreneai' className='text-gray-100 hover:text-white transition-colors'>Docs</Link></li>
+              {/* <li><Link href='https://docs.netsepio.com/latest/cyreneai' className='text-gray-100 hover:text-white transition-colors'>Docs</Link></li> */}
               {/* <li><Link href='/token' className='text-gray-100 hover:text-white transition-colors'>Token</Link></li> */}
             </ul>
           </div>
@@ -50,9 +50,9 @@ const Footer = () => {
           <div className='lg:pl-8 lg:py-12'>
             <h3 className='text-white text-lg font-bold text-center sm:text-left lg:mb-4 md:mb-4'>Resources</h3>
             <ul className='space-y-2 text-center sm:text-left'>
-              <li><Link href='https://play.google.com/store/apps/details?id=com.erebrus.app' className='text-gray-100 hover:text-white transition-colors'>Erebrus Android</Link></li>
+              {/* <li><Link href='https://play.google.com/store/apps/details?id=com.erebrus.app' className='text-gray-100 hover:text-white transition-colors'>Erebrus Android</Link></li>
               <li><Link href='https://testflight.apple.com/join/BvdARC75' className='text-gray-100 hover:text-white transition-colors'>Erebrus iOS*</Link></li>
-              <li><Link href='' className='text-gray-100 hover:text-white transition-colors'>Browser Extension</Link></li>
+              <li><Link href='' className='text-gray-100 hover:text-white transition-colors'>Browser Extension</Link></li> */}
             </ul>
           </div>
 

@@ -196,7 +196,7 @@ export default function ExploreAgents() {
     const fetchedAgents = await agentApi.getAgents();
     
     // Filter agents to only include those with organization 'cyrene'
-    const filteredFetchedAgents = fetchedAgents.filter((agent) => agent.organization === 'base');
+    const filteredFetchedAgents = fetchedAgents.filter((agent) => agent.organization === 'lumina');
 
     const filteredMockAgents = mockAgents.filter(
       (mock) => mock.image !== "/cyrene_profile.png" && mock.image !== "/elixia.png"

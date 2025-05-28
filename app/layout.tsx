@@ -13,49 +13,53 @@ import ProtectedRoute from "@/components/ProtectedRoute"; // Add this import
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cyreneai.com"),
-  title: "CyreneAI",
-  description: "Powering the future of AI interaction through multi-agent collaboration with self-replicating, decentralized agents. Launch agents, engage with Cyrene, and unlock new frontiers in AI, technology, and consciousness.",
+  metadataBase: new URL("https://ai.luminacasa.ai"),
+  title: "LuminaAI",
+  description:
+    "Your 24/7 concierge for conscious co-living, DAO governance, and soul-aligned wealth. Book regenerative retreats, engage in tokenized living, and help shape decentralized futures with Lumina.",
   icons: {
     icon: [
-      { url: "/CyreneAI_logo_square.png", sizes: "32x32", type: "image/png" },
-      { url: "/CyreneAI_logo_square.png", sizes: "16x16", type: "image/png" },
+      // { url: "/CyreneAI_logo_square.png", sizes: "32x32", type: "image/png" },
+      // { url: "/CyreneAI_logo_square.png", sizes: "16x16", type: "image/png" },
     ],
     apple: [
-      { url: "/CyreneAI_logo_square.png", sizes: "180x180", type: "image/png" },
+      // { url: "/CyreneAI_logo_square.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: [{ url: "/CyreneAI_logo_square.png" }],
+    // shortcut: [{ url: "/CyreneAI_logo_square.png" }],
   },
   openGraph: {
-    title: "CyreneAI",
-    description: "Powering the future of AI interaction through multi-agent collaboration with self-replicating, decentralized agents. Launch agents, engage with Cyrene, and unlock new frontiers in AI, technology, and consciousness.",
-    url: "https://cyreneai.com/",
-    siteName: "CyreneAI",
+    title: "LuminaAI",
+    description:
+      "Your 24/7 concierge for conscious co-living, DAO governance, and soul-aligned wealth. Book regenerative retreats, engage in tokenized living, and help shape decentralized futures with Lumina.",
+    url: "https://ai.luminacasa.ai/",
+    siteName: "LuminaAI",
     images: [
-      {
-        url: "/CyreneAI_share.png",
-        width: 1200,
-        height: 630,
-        alt: "Guiding Humanity to the Agentic Future",
-      },
+      // {
+      //   url: "/CyreneAI_share.png",
+      //   width: 1200,
+      //   height: 630,
+      //   alt: "Your Guide to Regenerative, Tokenized Co-Living",
+      // },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CyreneAI",
-    description: "Powering the future of AI interaction through multi-agent collaboration with self-replicating, decentralized agents. Launch agents, engage with Cyrene, and unlock new frontiers in AI, technology, and consciousness.",
+    title: "LuminaAI",
+    description:
+      "Your 24/7 concierge for conscious co-living, DAO governance, and soul-aligned wealth. Book regenerative retreats, engage in tokenized living, and help shape decentralized futures with Lumina.",
     images: [
-      {
-        url: "/CyreneAI_share.png",
-        width: 1200,
-        height: 630,
-        alt: "Guiding Humanity to the Agentic Future",
-      },
+      // {
+      //   url: "/CyreneAI_share.png",
+      //   width: 1200,
+      //   height: 630,
+      //   alt: "Your Guide to Regenerative, Tokenized Co-Living",
+      // },
     ],
-    site: "https://x.com/CyreneAI",
+    // site: "https://x.com/CyreneAI",
   },
 };
+
 
 export default async function RootLayout({
   children,

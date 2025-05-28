@@ -357,7 +357,7 @@ export default function LaunchAgentPage() {
           chat: [""],
           post: [""],
         },
-        organization: "cyrene",
+        organization: "lumina",
         settings,
         modelProvider: "openai",
       }));
